@@ -1,5 +1,18 @@
+find_package(GTest REQUIRED)
+
+include_directories(${GTEST_INCLUDE_DIRS})
+
+
 add_executable(test
 
-	main.cpp
+	execution_context.cpp
+)
+
+target_link_libraries(test
+
+	coroutines
+
+	${GTEST_BOTH_LIBRARIES}
+	pthread
 )
 
