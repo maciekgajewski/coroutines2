@@ -44,7 +44,8 @@ class coroutine
 public:
 
     /// Creates invalid coroutine
-    coroutine();
+    coroutine()
+    { }
 
     /// Creates valid, executable coroutine
     template<typename Fn>
