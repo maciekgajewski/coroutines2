@@ -44,7 +44,7 @@ class coroutine
 public:
 
     /// Creates invalid coroutine
-    coroutine()
+    coroutine() noexcept
     { }
 
     /// Creates valid, executable coroutine
@@ -52,10 +52,6 @@ public:
     explicit coroutine(Fn&& fn)
     : context_(std::make_shared<detail::coroutine_execution_context>(std::move(fn)))
     { }
-
-    /// Creates shallow copy, sharing the internal state with the original
-    coroutine(const coroutine&) = default;
-
 
     /// Test coroutine validity
     bool is_valid() const

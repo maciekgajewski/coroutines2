@@ -12,6 +12,7 @@ class execution_context
 public:
 
     execution_context();
+    execution_context(const execution_context&) = delete;
     virtual ~execution_context();
 
     void resume();

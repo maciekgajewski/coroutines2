@@ -58,30 +58,30 @@ private:
     boost::optional<T>& next_;
 };
 
-// Generator iterator - works as a stand-alone iterator
+// Generator iterator - works as a new-style iterator
 template<typename T>
-class generator_iterator
+class generator
 {
 public:
 
     // creates invalid generator
-    generator_iterator()
+    generator()
     { }
 
     // creates valid generator
     template<typename Fn>
-    generator_iterator(const Fn& f) // moving-out function will be possible in c++14
+    generator(const Fn& f) // moving-out function will be possible in c++14
         : coroutine_([f, this](){ f(generator_output<T>(next_)); })
     {
         coroutine_.resume();
     }
 
-    bool operator==(const generator_iterator<T>& o) const
+    bool operator==(const generator<T>& o) const
     {
         return next_.is_initialized() == o.next_.is_initialized();
     }
 
-    bool operator!=(const generator_iterator<T>& o) const
+    bool operator!=(const generator<T>& o) const
     {
         return next_.is_initialized() != o.next_.is_initialized();
     }
@@ -91,14 +91,14 @@ public:
         return *next_;
     }
 
-    generator_iterator<T>& operator++()
+    generator<T>& operator++()
     {
         advance();
         return *this;
     }
 
     // this is probably incorrect
-    generator_iterator<T>& operator++(int)
+    generator<T>& operator++(int)
     {
         advance();
         return *this;
@@ -119,6 +119,34 @@ private:
     boost::optional<T> next_;
 };
 
+// Wrapper for generator providing container-like interface
+// TODO doesn't boost provide some adaptor from new-style iterators to containers
+template<typename T>
+class generator_sequence
+{
+public:
+
+    typedef generator<T> iterator_type;
+    typedef T value_type;
+
+    generator_sequence(const generator<T>& gen)
+        : gen_(gen)
+    { }
+
+    generator<T> begin() const { return gen_; }
+    generator<T> end() const { return generator<T>(); }
+
+private:
+
+    generator<T> gen_;
+};
+
+// Function converting generator to sequence
+template<typename T>
+generator_sequence<T> to_sequence(const generator<T>& gen)
+{
+    return generator_sequence<T>(gen);
+}
 
 }
 
