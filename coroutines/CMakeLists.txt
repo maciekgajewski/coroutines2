@@ -4,6 +4,7 @@ add_library(coroutines
 
 	coroutine.cpp coroutine.hpp
 	execution_context.cpp execution_context.hpp
+	generator.hpp
 )
 
 target_link_libraries(coroutines

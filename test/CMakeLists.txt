@@ -7,6 +7,7 @@ add_executable(test
 
 	execution_context.cpp
 	coroutine.cpp
+	generator.cpp
 )
 
 target_link_libraries(test
