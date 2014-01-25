@@ -11,10 +11,8 @@ static const unsigned DEFAULT_STACK_SIZE = 64*1024; // 64kb should be enough for
 static thread_local execution_context* current_execution_context = nullptr;
 
 
-execution_context::execution_context(const std::function<void()>& fun, const std::string& name)
-    : function_(fun)
-    , stack_(new char[DEFAULT_STACK_SIZE])
-    , name_(name)
+execution_context::execution_context()
+    : stack_(new char[DEFAULT_STACK_SIZE])
 {
     new_context_ = boost::context::make_fcontext(
                 stack_.get() + DEFAULT_STACK_SIZE,
@@ -57,32 +55,25 @@ void execution_context::yield()
 void execution_context::static_context_function(intptr_t param)
 {
     execution_context* _this = reinterpret_cast<execution_context*>(param);
-    _this->context_function();
+    _this->context_function_wrapper();
 
 }
 
-void execution_context::context_function()
+void execution_context::context_function_wrapper()
 {
     try
     {
-        function_();
-    }
-    catch(const std::exception& e)
-    {
-        std::cerr << "Uncaught exception in " << name_ << " : " << e.what() << std::endl;
-        std::terminate();
+        context_function();
     }
     catch(...)
     {
-        std::cerr << "Uncaught exception in " << name_ << std::endl;
+        std::cerr << "Uncought exception in coroutine" << std::endl;
         std::terminate();
-
     }
     auto temp = new_context_;
     new_context_ = nullptr;// to mark the completion
     boost::context::jump_fcontext(temp, &caller_context_, 0);
 }
-
 
 
 }

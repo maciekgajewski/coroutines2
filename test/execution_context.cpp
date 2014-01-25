@@ -2,11 +2,28 @@
 
 #include <gtest/gtest.h>
 
+#include <functional>
+
+struct simple_context : public crs::execution_context
+{
+    template<typename Fn>
+    explicit simple_context(Fn&& fun)
+    : fun_(std::move(fun))
+    { }
+
+    virtual void context_function() override
+    {
+        fun_();
+    }
+
+    std::function<void()> fun_;
+};
+
 TEST(ExecutionContext, BasicTest)
 {
     int checkpoint = 0;
 
-    crs::execution_context context([&checkpoint]() {
+    simple_context context([&checkpoint]() {
         checkpoint = 1;
         crs::execution_context::current_context()->yield();
         checkpoint = 2;
