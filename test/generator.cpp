@@ -18,3 +18,13 @@ TEST(Generator, Iterator)
         ASSERT_EQ(expected++, *it);
     }
 }
+
+TEST(Generator, EmptyIterator)
+{
+    crs::generator_iterator<int> it([](crs::generator_output<int>){});
+
+    for(; it != crs::generator_iterator<int>(); it++)
+    {
+        ASSERT_FALSE(true);
+    }
+}
