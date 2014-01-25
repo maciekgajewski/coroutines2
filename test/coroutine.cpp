@@ -8,9 +8,9 @@ TEST(Corotuine, BasicTest)
 
     crs::coroutine coroutine([&checkpoint]() {
         checkpoint = 1;
-        crs::execution_context::current_context()->yield();
+        crs::coroutine::yield();
         checkpoint = 2;
-        crs::execution_context::current_context()->yield();
+        crs::coroutine::yield();
         checkpoint = 3;
     });
 
@@ -69,3 +69,37 @@ TEST(Corotuine, Exceptions)
         ASSERT_EQ(std::string(e.what()), "test exception");
     }
 }
+
+TEST(Corotuine, CurrentCorotuine)
+{
+    crs::coroutine c1;
+    int checkpoint = 0;
+
+    ASSERT_FALSE(c1.is_valid());
+
+    {
+        crs::coroutine c2([&checkpoint, &c1](){
+            checkpoint = 1;
+            c1 = crs::coroutine::current_coroutine();
+            crs::coroutine::yield();
+            checkpoint = 2;
+        });
+        c2.resume();
+        ASSERT_FALSE(c2.is_completed());
+        ASSERT_EQ(checkpoint, 1);
+    }
+
+    // at this point the execution context lives on within c1
+    ASSERT_TRUE(c1.is_valid());
+    ASSERT_FALSE(c1.is_completed());
+    c1.resume();
+    ASSERT_EQ(checkpoint, 2);
+    ASSERT_TRUE(c1.is_completed());
+}
+
+TEST(Corotuine, GoException)
+{
+    ASSERT_THROW(crs::go([](){throw std::runtime_error("test exception"); }), std::runtime_error);
+}
+
+

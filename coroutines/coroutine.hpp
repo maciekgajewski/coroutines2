@@ -110,8 +110,22 @@ private:
     { }
 
     context_ptr context_;
-
-
 };
+
+// Global function running piece of code as a corotuine.
+// The coroutine object is temporary, but it is possible that the context will outlive
+// the function scope, if copied with coroutine:current_coroutine.
+// If exeption ias set, it will be rethrown
+template<typename Fn>
+void go(Fn&& fun)
+{
+    crs::coroutine c(std::move(fun));
+    c.resume();
+
+    if (c.get_exception())
+    {
+        std::rethrow_exception(c.get_exception());
+    }
+}
 
 }
