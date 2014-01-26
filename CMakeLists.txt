@@ -10,3 +10,4 @@ set(CMAKE_CXX_FLAGS
 
 add_subdirectory(coroutines)
 add_subdirectory(test)
+add_subdirectory(examples)

@@ -11,7 +11,7 @@ namespace crs
 
 // Generator output - to be used from within generator
 template<typename T>
-class generator_output
+class generator_output : std::iterator<std::output_iterator_tag, T>
 {
 public:
 
@@ -27,23 +27,26 @@ public:
     generator_output<T>& operator=(const T& v)
     {
         next_ = v;
+        advance();
         return *this;
     }
 
     generator_output<T>& operator=(T&& v)
     {
         next_ = std::move(v);
+        advance();
+        return *this;
     }
 
     generator_output<T>& operator++()
     {
-        advance();
+        // no-op
         return *this;
     }
 
     generator_output<T>& operator++(int)
     {
-        advance();
+        // no-op
         return *this;
     }
 
@@ -60,7 +63,7 @@ private:
 
 // Generator iterator - works as a new-style iterator
 template<typename T>
-class generator
+class generator : public std::iterator<std::input_iterator_tag, T>
 {
 public:
 
@@ -70,11 +73,18 @@ public:
 
     // creates valid generator
     template<typename Fn>
-    generator(const Fn& f) // moving-out function will be possible in c++14
+    generator(const Fn& f)
         : coroutine_([f, this](){ f(generator_output<T>(next_)); })
     {
-        coroutine_.resume();
+        coroutine_.resume(); // to load the first value into next_
     }
+
+    generator(const generator&) = delete;
+
+    generator(generator&& o)
+        : coroutine_(std::move(o.coroutine_))
+        , next_(std::move(o.next_))
+    { }
 
     bool operator==(const generator<T>& o) const
     {
@@ -97,13 +107,6 @@ public:
         return *this;
     }
 
-    // this is probably incorrect
-    generator<T>& operator++(int)
-    {
-        advance();
-        return *this;
-    }
-
 private:
 
     void advance()
@@ -121,6 +124,7 @@ private:
 
 // Wrapper for generator providing container-like interface
 // TODO doesn't boost provide some adaptor from new-style iterators to containers
+/* Does not work now
 template<typename T>
 class generator_sequence
 {
@@ -147,6 +151,6 @@ generator_sequence<T> to_sequence(const generator<T>& gen)
 {
     return generator_sequence<T>(gen);
 }
-
+*/
 }
 
